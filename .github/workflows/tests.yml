@@ -1,0 +1,79 @@
+name: Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.11']
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install torch --index-url https://download.pytorch.org/whl/cpu
+        pip install pytest numpy pandas pillow
+    
+    - name: Run all tests
+      run: |
+        python -m pytest tests/ -v --tb=short
+    
+    - name: EXACT reproduction of winning submission (bit-for-bit)
+      run: |
+        bash scripts/reproduce_winning.sh reference/components /tmp/submission.csv
+        # Script exits non-zero unless MD5 and SHA256 match:
+        # MD5    24d729dedd16de4f65e2d67301455c48
+        # SHA256 9bb87a133f7af9d2f814373bc5a7f15b00be188d86619b440432fedd5470006e
+    
+    - name: Verify script syntax
+      run: |
+        python -m py_compile scripts/ensemble_merge.py
+        python -m py_compile scripts/plain_merge.py
+        python -m py_compile scripts/infer_4rc.py
+        bash -n scripts/node5_run_inference.sh
+        bash -n scripts/reproduce_winning.sh
+        echo "All scripts have valid syntax"
+    
+    - name: Test imports
+      run: |
+        # Test gallileo4d package
+        python -c "from gallileo4d import GallileoPipeline, EnsembleConfig, EnsembleMerger"
+        python -c "from gallileo4d.pipeline import InferenceConfig, ChallengeConstants"
+        # Test training module
+        python -c "from training import TRAINING_CONFIGS, EXPECTED_RESULTS, SoftAPDLoss"
+        # Test scripts can be parsed
+        python -c "import ast; ast.parse(open('scripts/ensemble_merge.py').read())"
+        python -c "import ast; ast.parse(open('scripts/infer_4rc.py').read())"
+        echo "All imports and syntax checks passed"
+    
+    - name: Verify reproduction constants
+      run: |
+        # Verify exact winning ensemble weights
+        grep -q "0.522 0.218 0.144 0.116" scripts/reproduce_winning.sh
+        # Verify expected hashes documented
+        grep -q "24d729dedd16de4f65e2d67301455c48" scripts/reproduce_winning.sh
+        grep -q "9bb87a133f7af9d2f814373bc5a7f15b00be188d86619b440432fedd5470006e" scripts/reproduce_winning.sh
+        # Verify winning score in README
+        grep -q "0.58356" README.md
+        # Verify reference files exist
+        test -f reference/winning_submission_sample.csv
+        test -f reference/winning_submission.csv.gz
+        test -f reference/components/infer_train_v2_submission.csv.gz
+        test -f reference/components/tta_flip_v2_submission.csv.gz
+        test -f reference/components/4rc_taba_merged.csv.gz
+        test -f reference/components/res728_component.csv.gz
+        echo "All reproduction constants verified"

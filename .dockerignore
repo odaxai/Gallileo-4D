@@ -1,0 +1,42 @@
+# Ignore large files
+*.csv
+!reference/winning_submission_sample.csv
+!reference/public_leaderboard.csv
+*.pth
+*.pt
+*.ckpt
+*.bin
+*.safetensors
+
+# Data directories
+data/
+checkpoints/
+results/
+submissions/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+*.egg-info/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Docker
+.dockerignore
