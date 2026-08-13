@@ -231,6 +231,7 @@ python -c "from arc.models.arc.arc import Arc; Arc.from_pretrained('Luo-Yihang/4
 
 | Dependency | Source | License |
 |------------|--------|---------|
+| 4RC backbone | [huggingface.co/Luo-Yihang/4RC](https://huggingface.co/Luo-Yihang/4RC) | Apache 2.0 |
 | Gallileo-4D weights | [huggingface.co/OdaxAI/gallileo-4d-weights](https://huggingface.co/OdaxAI/gallileo-4d-weights) | MIT |
 
 ### Step 3b — Download Gallileo-4D weights (full reproduction only)
